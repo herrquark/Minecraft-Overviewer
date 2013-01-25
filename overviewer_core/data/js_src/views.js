@@ -576,3 +576,171 @@ overviewer.views.LocationIconView = Backbone.View.extend({
     }
 });
 
+
+
+
+/* GeoJSON overlay view */
+overviewer.views.GeoOverlayView = Backbone.View.extend({
+    initialize: function(opts) {
+        $(this.el).addClass("customControl");
+        overviewer.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.el);
+        
+        function coordinateTransformer(x, y, z){
+            /* Transformation function for the modified GeoJSON class */
+            if (typeof z === "undefined" || z === null) {
+                z = y;
+                y = 64;
+            }
+            var c = overviewer.util.fromWorldToLatLng(x, y, z, overviewer.mapView.options.currentTileSet);
+            return c;
+        }
+
+        function createInfoWindow(geoObj) {
+            var bigIcon = geoObj.bigIcon || geoObj.icon,
+                iconHTML = bigIcon ? '<img src="' + bigIcon + '"/>' : '',
+                windowContent = '<div class="infoWindow">' +
+                                    iconHTML +
+                                    '<p>' +
+                                        _.escape(geoObj.info || geoObj.title).replace(/\n/g,'<br/>') +
+                                    '</p>' +
+                                '</div>',
+
+                infowindow = new google.maps.InfoWindow({
+                    'content': windowContent
+                });
+
+            
+
+            google.maps.event.addListener(geoObj, 'click', function(e) {
+                if (overviewer.collections.infoWindow) {
+                    overviewer.collections.infoWindow.close();
+                }
+
+                //console.log(e);
+                if (geoObj.position) {
+                    infowindow.open(overviewer.map, geoObj);
+                } else {
+                    infowindow.setPosition(e.latLng);
+                    infowindow.open(overviewer.map);
+                }
+                overviewer.collections.infoWindow = infowindow;
+            });
+        }
+
+        function addToMap(go, subitem) {
+            if (!subitem) {
+                go.setMap(overviewer.map);
+                go.setVisible(false);
+            }
+
+            (go.title || go.info) && createInfoWindow(go);
+        }
+        
+        var geoOverlayView = this;
+        $.getJSON(window.geoJSONConfig.url)
+            .done(function(data){
+
+                geoOverlayView.render();
+
+                $.each(data, function(key, val){
+                    if(!("options" in val)){
+                        val.options = {};
+                    }
+                    val.options.transformer = coordinateTransformer;
+                    val.checked = false;
+
+                    if (!val.options.icon) {
+                        // val.options.icon = "bed.png";
+                    }
+
+                    var geoObj = new GeoJSON(val.geo, val.options);
+
+                    if(geoObj.error) {
+                        //console.log("Error loading GeoJSON layer ", key, geoObj.error);
+                    } else {
+                        $.each(geoObj, function(i, go){
+                            addToMap(go);
+                        });
+                        val.geoObj = geoObj;
+                        overviewer.collections.geoLayers[key] = val;
+                        
+                        geoOverlayView.addItem({
+                            label: val.name,
+                            groupName: key,
+                            action: function(this_item, checked) {
+                                overviewer.collections.geoLayers[this_item.groupName].checked = checked;
+                                $.each(overviewer.collections.geoLayers[this_item.groupName].geoObj, function(i, elem){
+                                    //console.log(elem);
+                                    elem.setVisible(checked);
+                                });
+                            }
+                        });
+                    }
+                });
+            })
+            .fail(function(req, type, exception) {
+                //console.log("Error fetching the layers file.", type, exception);
+
+            });
+    },
+    render: function(){
+        this.el.innerHTML = "";
+        
+        var controlText = document.createElement('DIV');
+        controlText.innerHTML = window.geoJSONConfig.title;
+
+        var controlBorder = document.createElement('DIV');
+        $(controlBorder).addClass('top');
+        this.el.appendChild(controlBorder);
+        controlBorder.appendChild(controlText);
+
+        var dropdownDiv = document.createElement('DIV');
+        $(dropdownDiv).addClass('dropDown');
+        this.el.appendChild(dropdownDiv);
+        dropdownDiv.innerHTML='';
+
+        // add the functionality to toggle visibility of the items
+        $(controlText).click(function() {
+                $(controlBorder).toggleClass('top-active');
+                $(dropdownDiv).toggle();
+        });
+    },
+    
+    addItem: function(item) {
+        var itemDiv = $('<div style="cursor: pointer"/>');
+        var itemInput = $('<input type="checkbox"/>');
+
+        // give it a name
+        itemInput.data('label',item.label);
+        itemInput.attr("_mc_layername", item.groupName);
+        itemDiv.click((function(local_item) {
+            return function(e) {
+                if (!itemInput.is(e.target)) {
+                    var checked = itemInput.is(":checked");
+                    checked ? itemInput.removeAttr("checked") : itemInput.attr("checked", "checked");
+                } else {
+                    var checked = !itemInput.is(":checked");
+                }
+
+                item.action(local_item, !checked);
+            };
+        })(item));
+
+        this.$(".dropDown").append(itemDiv);
+        itemDiv.append(itemInput);
+        var textNode = document.createElement('text');
+        if(item.icon) {
+            textNode.innerHTML = '<img width="15" height="15" src="' +
+                item.icon + '">' + item.label + '<br/>';
+        } else {
+            textNode.innerHTML = item.label + '<br/>';
+        }
+
+        itemDiv.append(textNode);
+    }
+});
+
+overviewer.bind("overviewer:init_views", function(){
+    overviewer.collections.geoLayers = {};
+    var overlayview = new overviewer.views.GeoOverlayView();
+});

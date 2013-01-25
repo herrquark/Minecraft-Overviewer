@@ -6,6 +6,9 @@
 
 var overviewer = {};
 
+// GeoJSON
+_.extend(overviewer, Backbone.Events);
+
 
 /**
  * This holds the map, probably the most important var in this file

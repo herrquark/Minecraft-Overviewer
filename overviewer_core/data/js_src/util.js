@@ -147,6 +147,9 @@ overviewer.util = {
 
         
         overviewer.util.initializeMarkers();
+		
+		// GeoJSON
+		overviewer.trigger("overviewer:init_views");
 
         /*
            overviewer.util.initializeMapTypes();

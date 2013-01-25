@@ -1,0 +1,74 @@
+{
+    "north-railroad": {
+        "name": "Northern Railroad",
+        "geo": {
+            "type": "FeatureCollection",
+            "features":
+            [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-326, 57, 542]
+                    },
+                    "options" : { "info": "I'm so lonely :(" }
+                }
+            ]
+        }
+    },
+
+    "south-railroad": {
+        "name": "Southern Railroad",
+        "geo": {
+            "type": "FeatureCollection",
+            "features":
+            [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-376, 57, 599]
+                    },
+                    "options" : { "info": "Start here" }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-352, 57, 638]
+                    },
+                    "options" : {
+                        "title": "Hint",
+                        "info": "This marker uses different images for icon and popup;\nAlso it has a hint visible on mouseover",
+                        "icon": "signpost_icon.png",
+                        "bigIcon": "bed.png"
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry":{
+                        "type": "LineString",
+                        "coordinates": [
+                            [-376, 57, 599],
+                            [-358, 59, 599],
+                            [-376, 69, 628],
+                            [-361, 60, 642],
+                            [-347, 67, 644],
+                            [-347, 57, 644],
+                            [-352, 57, 638]
+                        ]
+                    },
+                    "options" : { "info": "Sample route..." }
+                }
+            ]
+        },
+        "options": {
+                "strokeColor": "#FF7800",
+                "strokeOpacity": 1,
+                "strokeWeight": 2,
+                "fillColor": "#46461F",
+                "fillOpacity": 0.25,
+                "title": "Common hint"
+        }
+    }
+}
