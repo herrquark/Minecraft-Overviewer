@@ -260,9 +260,7 @@ var GeoJSON = function( geojson, options ){
 				obj = [];
 				for (var i = 0; i < geojson.features.length; i++){
 					var o = {};
-					if (geojson.features[i].options) {
-						_extend(o, opts, geojson.features[i].options);
-					}
+					_extend(o, opts, geojson.features[i].options || {});
 					//console.log(o);
 					obj.push(_geometryToGoogleMaps(geojson.features[i].geometry, o, geojson.features[i].properties));
 				}
