@@ -639,7 +639,7 @@ overviewer.views.GeoOverlayView = Backbone.View.extend({
         var geoOverlayView = this;
         $.getJSON(window.geoJSONConfig.url)
             .done(function(data){
-
+		data = data.contents || data;
                 geoOverlayView.render();
 
                 $.each(data, function(key, val){
