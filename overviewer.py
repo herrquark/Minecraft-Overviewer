@@ -80,7 +80,7 @@ def main():
 
     # Useful one-time debugging options:
     parser.add_option("--check-terrain", dest="check_terrain", action="store_true",
-            help="Prints the location and hash of terrain.png, useful for debugging terrain.png problems")
+            help="Tries to locate the texture files. Useful for debugging texture problems.")
     parser.add_option("-V", "--version", dest="version",
             help="Displays version information and then exits", action="store_true")
     parser.add_option("--update-web-assets", dest='update_web_assets', action="store_true",
@@ -99,6 +99,8 @@ def main():
             "These scripts may accept different arguments than the ones listed above")
     exegroup.add_option("--genpoi", dest="genpoi", action="store_true",
             help="Runs the genPOI script")
+    exegroup.add_option("--skip-scan", dest="skipscan", action="store_true",
+            help="When running GenPOI, don't scan for entities")
 
     parser.add_option_group(exegroup)
 
@@ -146,12 +148,12 @@ def main():
 
         logging.info("Looking for a few common texture files...")
         try:
-            f = tex.find_file("textures/blocks/stone.png", verbose=True)
-            f = tex.find_file("textures/blocks/tallgrass.png", verbose=True)
-            f = tex.find_file("textures/blocks/oreDiamond.png", verbose=True)
-            f = tex.find_file("textures/blocks/wood.png", verbose=True)
+            f = tex.find_file("assets/minecraft/textures/blocks/sandstone_top.png", verbose=True)
+            f = tex.find_file("assets/minecraft/textures/blocks/grass_top.png", verbose=True)
+            f = tex.find_file("assets/minecraft/textures/blocks/diamond_ore.png", verbose=True)
+            f = tex.find_file("assets/minecraft/textures/blocks/planks_oak.png", verbose=True)
         except IOError:
-            logging.error("Could not find the file stone.png")
+            logging.error("Could not find any texture files.")
             return 1
 
         return 0
@@ -422,6 +424,7 @@ dir but you forgot to put quotes around the directory, since it contains spaces.
             tex = texcache[texopts_key]
     
         try:
+            logging.debug("Asking for regionset %r" % render['dimension'][1])
             rset = w.get_regionset(render['dimension'][1])
         except IndexError:
             logging.error("Sorry, I can't find anything to render!  Are you sure there are .mca files in the world directory?")
@@ -457,7 +460,7 @@ dir but you forgot to put quotes around the directory, since it contains spaces.
 
         # only pass to the TileSet the options it really cares about
         render['name'] = render_name # perhaps a hack. This is stored here for the asset manager
-        tileSetOpts = util.dict_subset(render, ["name", "imgformat", "renderchecks", "rerenderprob", "bgcolor", "defaultzoom", "imgquality", "optimizeimg", "rendermode", "worldname_orig", "title", "dimension", "changelist", "showspawn", "overlay", "base", "poititle", "maxzoom"])
+        tileSetOpts = util.dict_subset(render, ["name", "imgformat", "renderchecks", "rerenderprob", "bgcolor", "defaultzoom", "imgquality", "optimizeimg", "rendermode", "worldname_orig", "title", "dimension", "changelist", "showspawn", "overlay", "base", "poititle", "maxzoom", "showlocationmarker"])
         tileSetOpts.update({"spawn": w.find_true_spawn()}) # TODO find a better way to do this
         tset = tileset.TileSet(w, rset, assetMrg, tex, tileSetOpts, tileset_dir)
         tilesets.append(tset)

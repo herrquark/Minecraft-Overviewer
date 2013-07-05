@@ -44,7 +44,7 @@ You've added a new feature or changed textures, but it's not showing up on my ma
 Some new features will only show up in newly-rendered areas. Use the
 :option:`--forcerender` option to update the entire map. If you have a really
 large map and don't want to re-render everything, take a look at
-the :option:`--stochastic-render` option.
+the :ref:`rerenderprob` configuration option.
 
 How do I use this on CentOS 5?
 ------------------------------
@@ -164,3 +164,66 @@ two ways.
 3. The third non-option is to not worry about it. The problem will fix itself if
    people explore near there, because that will force that part of the map to
    update.
+
+My map is zoomed out so far that it looks (almost) blank
+--------------------------------------------------------
+
+We see this quite a bit, and seems to stem from a bug in the Minecraft terrain
+generation.
+
+Explanation: Minecraft generates chunks of your world as it needs them. When
+Overviewer goes to render your map, it looks at how big the world is, and
+calculates how big the maps needs to be in order to fit it all in.
+Occasionally, we see that Minecraft has generated a few chunks of the world
+extremely far away from the main part of the world. These erroneous chunks have
+most likely not been explored [*]_ and should not exist.
+
+There are two solutions. The preferred is to delete the offending chunks. Open
+up your region folder of your world and look at the region file names. They are
+numbered ``r.##.##.mcr`` where ``##`` is a number. The two numbers indicate the
+coordinates of that region file. Look for region files with coordinates much
+larger in magnitude than any others. Most likely you will find around 1–3
+region files with coordinates much larger than any others. Delete or otherwise
+remove those files, and re-render your map.
+
+The other option is to use the :ref:`crop<crop>` option to tell Overviewer not
+to render all of your map, but instead to only render the specified region.
+
+As always, if you need assistance, come chat with us on :ref:`irc<help>`.
+
+.. [*] They could also have been triggered by an accidential teleport where the coordinates were typed in manually.
+
+I want to put manual POI definitions or other parts of my config into a seperate file
+-------------------------------------------------------------------------------------
+
+This can be achieved by creating a module and then importing it in
+your config.  First, create a file containing your markers
+definitions. We'll call it ``manualmarkers.py``.
+
+::
+
+    mymarkers = [{'id':'town', 'x':200, 'y':64, 'z':-400, 'name':'Pillowcastle'},
+                 {'id':'town', 'x':500, 'y':70, 'z': 100, 'name':'brownotopia' }]
+
+
+The final step is to import the very basic module you've just created
+into your config.  In your config, do the following
+
+::
+
+    import sys
+    sys.path.append("/wherever/your/manualmarkers/is/") # Replace this with your path to manualmarkers.py,
+                                                        # so python can find it
+    
+    from manualmarkers import *                         # import our markers
+    
+    # all the usual config stuff goes here
+    
+    render["myrender"] = {
+        "title" : "foo",
+        "world" : "someworld",
+        "manualpois" : mymarkers,                         # IMPORTANT! Variable name from manualmarkers.py
+        # and here goes the list of the filters, etc.
+    }
+
+Now you should be all set.

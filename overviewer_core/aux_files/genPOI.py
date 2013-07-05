@@ -122,6 +122,7 @@ def main():
     parser = OptionParser(usage=helptext)
     parser.add_option("--config", dest="config", action="store", help="Specify the config file to use.")
     parser.add_option("--quiet", dest="quiet", action="count", help="Reduce logging output")
+    parser.add_option("--skip-scan", dest="skipscan", action="store_true", help="Skip scanning for entities when using GenPOI")
 
     options, args = parser.parse_args()
     if not options.config:
@@ -182,12 +183,14 @@ def main():
                 l.append(to_append)
             except KeyError:
                 markers[rname] = [to_append]
+        
+        if not options.skipscan:
+            handleEntities(rset, os.path.join(destdir, rname), render, rname)
 
-        handleEntities(rset, os.path.join(destdir, rname), render, rname)
         handlePlayers(rset, render, worldpath)
         handleManual(rset, render['manualpois'])
 
-    logging.info("Done scanning regions")
+    logging.info("Done handling POIs")
     logging.info("Writing out javascript files")
     markerSetDict = dict()
     for (flter, rset) in markersets:
@@ -216,6 +219,22 @@ def main():
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result, hovertext=result)
                 elif type(result) == tuple:
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result[1], hovertext=result[0])
+                # Dict support to allow more flexible things in the future as well as polylines on the map.
+                elif type(result) == dict:
+                    d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result['text'])
+                    # Use custom hovertext if provided...
+                    if 'hovertext' in result and isinstance(result['hovertext'], basestring):
+                        d['hovertext'] = result['hovertext']
+                    else: # ...otherwise default to display text.
+                        d['hovertext'] = result['text']
+                    if 'polyline' in result and type(result['polyline']) == tuple:  #if type(result.get('polyline', '')) == tuple:
+                        d['polyline'] = []
+                        for point in result['polyline']:
+                            # This poor man's validation code almost definately needs improving.
+                            if type(point) == dict:
+                                d['polyline'].append(dict(x=point['x'],y=point['y'],z=point['z']))
+                        if isinstance(result['color'], basestring):
+                            d['strokeColor'] = result['color']
                 if "icon" in poi:
                     d.update({"icon": poi['icon']})
                 if "createInfoWindow" in poi:
@@ -228,6 +247,22 @@ def main():
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result, hovertext=result)
                 elif type(result) == tuple:
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result[1], hovertext=result[0])
+                # Dict support to allow more flexible things in the future as well as polylines on the map.
+                elif type(result) == dict:
+                    d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result['text'])
+                    # Use custom hovertext if provided...
+                    if 'hovertext' in result and isinstance(result['hovertext'], basestring):
+                        d['hovertext'] = result['hovertext']
+                    else: # ...otherwise default to display text.
+                        d['hovertext'] = result['text']
+                    if 'polyline' in result and type(result['polyline']) == tuple:  #if type(result.get('polyline', '')) == tuple:
+                        d['polyline'] = []
+                        for point in result['polyline']:
+                            # This poor man's validation code almost definately needs improving.
+                            if type(point) == dict:
+                                d['polyline'].append(dict(x=point['x'],y=point['y'],z=point['z']))
+                        if isinstance(result['color'], basestring):
+                            d['strokeColor'] = result['color']
                 if "icon" in poi:
                     d.update({"icon": poi['icon']})
                 if "createInfoWindow" in poi:
@@ -240,6 +275,22 @@ def main():
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result, hovertext=result)
                 elif type(result) == tuple:
                     d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result[1], hovertext=result[0])
+                # Dict support to allow more flexible things in the future as well as polylines on the map.
+                elif type(result) == dict:
+                    d = dict(x=poi['x'], y=poi['y'], z=poi['z'], text=result['text'])
+                    # Use custom hovertext if provided...
+                    if 'hovertext' in result and isinstance(result['hovertext'], basestring):
+                        d['hovertext'] = result['hovertext']
+                    else: # ...otherwise default to display text.
+                        d['hovertext'] = result['text']
+                    if 'polyline' in result and type(result['polyline']) == tuple:  #if type(result.get('polyline', '')) == tuple:
+                        d['polyline'] = []
+                        for point in result['polyline']:
+                            # This poor man's validation code almost definately needs improving.
+                            if type(point) == dict:
+                                d['polyline'].append(dict(x=point['x'],y=point['y'],z=point['z']))
+                        if isinstance(result['color'], basestring):
+                            d['strokeColor'] = result['color']
                 if "icon" in poi:
                     d.update({"icon": poi['icon']})
                 if "createInfoWindow" in poi:
